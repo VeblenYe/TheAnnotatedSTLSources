@@ -19,21 +19,17 @@ int main() {
 	std::random_device r;
 	std::default_random_engine e(r());
 	std::uniform_int_distribution<int> dist(1, 1000);
-	for (int i = 0; i < 500; ++i)
+	for (int i = 0; i < 10; ++i)
 		itree.insert_equal(dist(e));
 	for (auto i : itree)
 		std::cout << i << std::ends;
 	std::cout << std::endl;
 
-	auto p = itree.lower_bound(78);
-	cout << *p << endl;
+	auto q = itree;
+	q.erase(q.begin());
+	//q.insert_equal(99);
 
-	auto q = itree.lower_bound(900);
-	cout << *q << endl;
-
-	itree.erase(p, q);
-	for (auto i : itree)
-		std::cout << i << std::ends;
+	cout << (q < itree) << endl;
 
 
 	getchar();

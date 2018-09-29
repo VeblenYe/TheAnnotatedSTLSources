@@ -136,6 +136,7 @@
     <ClInclude Include="gruel_memory.h" />
     <ClInclude Include="gruel_priority_queue.h" />
     <ClInclude Include="gruel_queue.h" />
+    <ClInclude Include="gruel_set.h" />
     <ClInclude Include="gruel_slist.h" />
     <ClInclude Include="gruel_stack.h" />
     <ClInclude Include="gruel_tree.h" />

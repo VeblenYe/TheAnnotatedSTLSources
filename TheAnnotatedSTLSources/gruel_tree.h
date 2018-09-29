@@ -62,10 +62,21 @@ namespace gruel {
 	};
 
 
+	inline bool operator==(const _rb_tree_iterator_base &lhs,
+		const _rb_tree_iterator_base &rhs) {
+		return lhs.node == rhs.node;
+	}
+
+
+	inline bool operator!=(const _rb_tree_iterator_base &lhs,
+		const _rb_tree_iterator_base &rhs) {
+		return lhs.node != rhs.node;
+	}
+
+
 	//RB-Tree的迭代器模板类，其指向的为节点模板类
 	template <typename Value, typename Ref, typename Ptr>
 	struct _rb_tree_iterator : public _rb_tree_iterator_base {
-
 		using value_type = Value;
 		using reference = Ref;
 		using pointer = Ptr;
@@ -82,9 +93,6 @@ namespace gruel {
 		// 这里可以进行强制转换
 		reference operator*() const { return link_type(node)->value_field; }
 		pointer operator->() const { return &(operator*()); }
-
-		bool operator==(const self &x) const { return node == x.node; }
-		bool operator!=(const self &x) const { return node != x.node; }
 
 		// 前置自增
 		self &operator++() {
@@ -298,6 +306,7 @@ namespace gruel {
 				header->right = minimum(root());
 				// 修正树大小
 				node_count = x.size();
+				return *this;
 			}
 
 			
@@ -327,6 +336,12 @@ namespace gruel {
 				return (size_type)distance(p.first, p.second);
 			}
 			void erase(link_type x) { _erase(x); }
+			size_type erase(const Key &x) {
+				std::pair<const_iterator, const_iterator> p = equal_range(x);
+				size_type n = distance(p.first, p.second);
+				erase(p.first, p.second);
+				return n;
+			}
 			void erase(iterator position) {
 				link_type y = (link_type)_rb_tree_rebalance_for_erase(position.node, header->parent,
 					header->left, header->right);
@@ -340,18 +355,189 @@ namespace gruel {
 					while (first != last)
 						erase(first++);
 			}
-
 			std::pair<iterator, bool> insert_unique(const value_type &x);
+			iterator insert_unique(iterator position, const value_type &x);
+			template <typename InputIterator>
+			void insert_unique(InputIterator first, InputIterator last) {
+				for (; first != last; ++first)
+					insert_unique(*first);
+			}
 			iterator insert_equal(const value_type &v);
-
-			// 不能用erase(begin(), end())，因为并不需要调整
+			iterator insert_equal(iterator position, const value_type &x);
+			template <typename InputIterator>
+			void insert_equal(InputIterator first, InputIterator last) {
+				for (; first != last; ++first)
+					insert_equal(*first);
+			}
+			// 不要用erase(begin(), end())，因为并不需要调整
 			void clear() { 
 				_erase(root());
 			}
 	};
 
 
-	// 真正的插入操作
+	template <typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
+	inline bool operator==(const rb_tree<Key, Value, KeyOfValue, Compare, Alloc> &lhs,
+			const rb_tree<Key, Value, KeyOfValue, Compare, Alloc> &rhs) {
+		if (lhs.size() != rhs.size())
+			return false;
+		auto first1 = lhs.begin();
+		auto last1 = lhs.end();
+		auto first2 = rhs.begin();
+		for (; first1 != last1 && *first1 == *first2; ++first1, ++first2);
+		if (first1 != last1)
+			return false;
+		return true;
+	}
+
+
+	template <typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
+	inline bool operator<(const rb_tree<Key, Value, KeyOfValue, Compare, Alloc> &lhs,
+			const rb_tree<Key, Value, KeyOfValue, Compare, Alloc> &rhs) {
+		if (lhs.size() != rhs.size())
+			return lhs.size() < rhs.size();
+		auto first1 = lhs.begin();
+		auto last1 = lhs.end();
+		auto first2 = rhs.begin();
+		while (first1 != last1) {
+			if (*first1 < *first2)
+				return true;
+			if (*first2 < *first1)
+				return false;
+			++first1, ++first2;
+		}
+		return false;
+	}
+
+
+	// 插入操作，节点键值不能重复
+	template <typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
+	std::pair<typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator, bool>
+		rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::insert_unique(const value_type &v) {
+
+		link_type y = header;
+		link_type x = root();
+		bool comp = true;
+
+		while (x) {
+			y = x;
+			// v小于等于x则往左，大于x则往右
+			comp = key_compare(KeyOfValue()(v), key(x));
+			x = comp ? left(x) : right(x);
+		}
+
+		iterator j = iterator(y);
+		// 若comp为true，即y值比v大
+		if (comp)
+			if (j == begin())
+				return { _insert(x, y, v), true };
+			else
+				--j;
+
+		// 这里comp为false，即y值小于等于v，若v值没有j大，则二者相等
+		if (key_compare(key(j.node), KeyOfValue()(v)))
+			return { _insert(x, y, v), true };
+
+		return { j, false };
+	}
+
+
+	// 插入到指定迭代器位置之前，如果不符合要求，则由其他插入处理
+	template <typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
+	typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator
+		rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::insert_unique(iterator position, const value_type &x) {
+
+		// 情况一：插入位置为begin()
+		if (position.node == header->left) {
+			// 如果元素个数大于零，即begin()不为空，且x的键值小于begin()的键值，则插入到begin()之前
+			if (size() > 0 && key_compare(KeyOfValue()(x), key(position.node)))
+				return _insert(position.node, position.node, x);
+			// 否则，返回insert_unique(x)后的迭代器
+			else
+				return insert_unique(x).first;
+		}
+		// 情况二：插入位置为end()
+		else if (position.node == header) {
+			// 如果最大节点的键值小于x的键值，则插入到end()之前，最大节点之后，满足插入条件
+			if (key_compare(key(header->right), KeyOfValue()(x)))
+				return _insert(nullptr, position.node, x);
+			else
+				return insert_unique(x).first;
+		}
+		// 情况三：插入位置为除头尾外的任意位置
+		else {
+			iterator before = position;
+			--before;
+			// 如果x的键值比position的前驱大并比position小，则满足插入条件
+			if (key_compare(key(before.node), KeyOfValue()(x))
+				&& key_compare(KeyOfValue()(x), key(position.node))) {
+				if (right(before.node) == nullptr)
+					return _insert(nullptr, before.node, x);
+				else
+					return _insert(position.node, position.node, x);
+			}
+			else
+				return insert_unique(x).first;
+		}
+	}
+
+
+	// 插入操作，节点键值可以重复
+	template <typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
+	typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator
+		rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::insert_equal(const value_type & v) {
+		link_type y = header;
+		link_type x = root();
+
+		while (x) {
+			y = x;
+			x = key_compare(KeyOfValue()(v), key(x)) ? left(x) : right(x);
+		}
+		return _insert(x, y, v);
+	}
+
+
+	// 插入到指定迭代器位置之前，如果不符合要求，则交由其他插入函数处理
+	template <typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
+	typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator
+		rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::insert_equal(iterator position, const value_type &x) {
+
+		// 情况一：插入位置为begin()
+		if (position.node == header->left) {
+			// 如果元素个数大于零，即begin()不为空，且x的键值小于begin()的键值，则插入到begin()之前
+			if (size() > 0 && key_compare(KeyOfValue()(x), key(position.node)))
+				return _insert(position.node, position.node, x);
+			// 否则，返回insert_unique(x)后的迭代器
+			else
+				return insert_equal(x);
+		}
+		// 情况二：插入位置为end()
+		else if (position.node == header) {
+			// 如果最大节点的键值小于x的键值，则插入到end()之前，最大节点之后，满足插入条件
+			if (key_compare(key(header->right), KeyOfValue()(x)))
+				return _insert(nullptr, position.node, x);
+			else
+				return insert_equal(x);
+		}
+		// 情况三：插入位置为除头尾外的任意位置
+		else {
+			iterator before = position;
+			--before;
+			// 如果x的键值比position的前驱大并比position小，则满足插入条件
+			if (key_compare(key(before.node), KeyOfValue()(x))
+				&& key_compare(KeyOfValue()(x), key(position.node))) {
+				if (right(before.node) == nullptr)
+					return _insert(nullptr, before.node, x);
+				else
+					return _insert(position.node, position.node, x);
+			}
+			else
+				return insert_equal(x);
+		}
+	}
+
+
+	// 真正的插入操作，x_为新值插入点，y_为插入点的父节点
 	template <typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
 	typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator
 		rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::_insert(base_ptr x_, base_ptr y_, const value_type &v) {
@@ -519,53 +705,6 @@ namespace gruel {
 		}
 
 		return const_iterator(y);
-	}
-
-
-	// 插入操作，节点键值不能重复
-	template <typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
-	std::pair<typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator, bool>
-		rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::insert_unique(const value_type &v) {
-
-		link_type y = header;
-		link_type x = root();
-		bool comp = true;
-
-		while (x) {
-			y = x;
-			// v小于等于x则往左，大于x则往右
-			comp = key_compare(KeyOfValue()(v), key(x));
-			x = comp ? left(x) : right(x);
-		}
-
-		iterator j = iterator(y);
-		// 若comp为true，即y值比v大
-		if (comp)
-			if (j == begin())
-				return { _insert(x, y, v), true };
-			else
-				--j;
-
-		// 这里comp为false，即y值小于等于v，若v值没有j大，则二者相等
-		if (key_compare(key(j.node), KeyOfValue()(v)))
-			return { _insert(x, y, v), true };
-
-		return { j, false };
-	}
-
-
-	// 插入操作，节点键值可以重复
-	template <typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
-	typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator
-		rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::insert_equal(const value_type & v) {
-		link_type y = header;
-		link_type x = root();
-
-		while (x) {
-			y = x;
-			x = key_compare(KeyOfValue()(v), key(x)) ? left(x) : right(x);
-		}
-		return _insert(x, y, v);
 	}
 
 
