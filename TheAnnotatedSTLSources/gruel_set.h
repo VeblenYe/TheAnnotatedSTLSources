@@ -68,7 +68,7 @@ namespace gruel {
 		}
 
 		iterator insert(iterator position, const Key &k) {
-			return t.insert_unique((rep_iterator)position, x);
+			return t.insert_unique((rep_iterator)position, k);
 		}
 
 		template <typename InputIterator>
