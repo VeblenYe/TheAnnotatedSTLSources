@@ -133,7 +133,9 @@
     <ClInclude Include="gruel_iterator.h" />
     <ClInclude Include="gruel_alloc.h" />
     <ClInclude Include="gruel_list.h" />
+    <ClInclude Include="gruel_map.h" />
     <ClInclude Include="gruel_memory.h" />
+    <ClInclude Include="gruel_multiset.h" />
     <ClInclude Include="gruel_priority_queue.h" />
     <ClInclude Include="gruel_queue.h" />
     <ClInclude Include="gruel_set.h" />
@@ -143,6 +145,7 @@
     <ClInclude Include="gruel_type_traits.h" />
     <ClInclude Include="gruel_uninitialized.h" />
     <ClInclude Include="gruel_vector.h" />
+    <ClInclude Include="multimap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

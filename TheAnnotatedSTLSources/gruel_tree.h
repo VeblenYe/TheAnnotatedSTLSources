@@ -373,6 +373,13 @@ namespace gruel {
 			void clear() { 
 				_erase(root());
 			}
+			void swap(const self &t) noexcept;
+			void reset() {
+				header->parent = nullptr;
+				header->left = header;
+				header->right = header;
+				node_count = 0;
+			}
 	};
 
 
@@ -705,6 +712,41 @@ namespace gruel {
 		}
 
 		return const_iterator(y);
+	}
+
+
+	template <typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
+	void rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::swap(const self &x) noexcept {
+		if (root() == nullptr) {
+			// 两个都为空为啥还要交换，我也不懂
+			if (x.root() == nullptr) {
+				x.root() = root();
+				x.leftmost() = leftmost();
+				x.rightmost() = rightmost();
+				x.root()->parent = x.end();
+				x.node_count = node_count;
+				reset();
+			}
+			else {
+				root() = x.root();
+				leftmost() = x.leftmost();
+				rightmost() = x.rightmost();
+				root()->parent = end();
+				node_count = x.node_count;
+				x.reset();
+			}
+		}
+		else {
+			std::swap(root(), x.root());
+			std::swap(leftmost(), x.leftmost());
+			std::swap(rightmost(), x.rightmost());
+			
+			root()->parent = end();
+			x.root()->parent = x.end();
+			std::swap(node_count, x.node_count);
+		}
+		std::swap(key_compare, x.key_compare);
+		// 注意我最后没有交换配置器，因为配置器是类型，没有实例化，我不知道怎么交换，再者这里交换的是两棵模板类型一致的树，应该没有问题
 	}
 
 

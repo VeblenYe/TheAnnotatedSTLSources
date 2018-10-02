@@ -74,5 +74,14 @@
     <ClInclude Include="gruel_set.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="gruel_map.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gruel_multiset.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="multimap.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

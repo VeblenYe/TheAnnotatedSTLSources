@@ -5,6 +5,7 @@
 #include <functional>
 #include <random>
 #include "gruel_set.h"
+#include "gruel_map.h"
 
 
 using std::cout;
@@ -14,15 +15,15 @@ using std::ends;
 
 int main() {
 
-	gruel::set<int> iset;
+	gruel::map<int, int> iset;
 
 	std::random_device r;
 	std::default_random_engine e(r());
 	std::uniform_int_distribution<int> dist(1, 1000);
 	for (int i = 0; i < 10; ++i)
-		iset.insert(dist(e));
+		iset.insert({ i, dist(e) });
 	for (auto i : iset)
-		std::cout << i << std::ends;
+		std::cout << i.second << std::ends;
 	std::cout << std::endl;
 
 
