@@ -145,7 +145,7 @@
     <ClInclude Include="gruel_type_traits.h" />
     <ClInclude Include="gruel_uninitialized.h" />
     <ClInclude Include="gruel_vector.h" />
-    <ClInclude Include="multimap.h" />
+    <ClInclude Include="gruel_multimap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

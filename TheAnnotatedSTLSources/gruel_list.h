@@ -64,6 +64,8 @@ namespace gruel {
 
 	};
 
+
+	// 需要注意的是这是一个双向环形链表，其end()是一个特殊节点node，而begin()则是node的后继
 	template <typename T, typename Alloc = alloc>
 	class list {
 	protected:
@@ -161,7 +163,7 @@ namespace gruel {
 
 		void merge(list<T, Alloc> &x);
 		void reverse();
-		// STL的sort()需要接受RandomAccessIterator
+		// STL的sort()需要接受RandomAccessIterator，所以这里提供自用的sort
 		void sort();
 
 		void swap(list<T, Alloc> &x) noexcept {
@@ -204,6 +206,7 @@ namespace gruel {
 
 
 		// 将[first, last)中的内容迁移至position前
+		// 该函数作为splice和其他一系列函数的基础，很重要，看图更好理解
 		void transfer(iterator position, iterator first, iterator last) {
 			last.node->prev->next = position.node;
 			first.node->prev->next = last.node;
@@ -259,6 +262,7 @@ namespace gruel {
 	}
 
 
+	// 去重
 	template <typename T, typename Alloc>
 	void list<T, Alloc>::unique() {
 		if (empty()) return;
@@ -276,6 +280,7 @@ namespace gruel {
 	}
 
 
+	// 归并
 	template <typename T, typename Alloc>
 	void list<T, Alloc>::merge(list<T, Alloc> &x) {
 		auto first1 = begin();
@@ -284,6 +289,7 @@ namespace gruel {
 		auto last2 = x.end();
 		
 		while (first1 != last1 && first2 != last2)
+			// 如果first2的值小于first1的值，则将first2迁移到first1之前
 			if (*first2 < *first1) {
 				auto next = first2;
 				transfer(first1, first2, ++next);
@@ -292,16 +298,19 @@ namespace gruel {
 			}
 			else
 				++first1;
-		if (first2 != last2) transfer(first1, first2, last2);
+		if (first2 != last2) transfer(last1, first2, last2);
 	}
 
 
+	// 倒置
 	template <typename T, typename Alloc>
 	void list<T, Alloc>::reverse() {
+		// 链表为空或为一
 		if (node->next == node || node->next->next == node) return;
 
 		auto first = begin();
 		++first;
+		// 就是一个一个移到begin()前
 		while (first != end()) {
 			auto old = first;
 			++first;
@@ -316,23 +325,36 @@ namespace gruel {
 			return;
 
 		// 以下是快排代码，没看懂。。
+		/* OK现在看懂了，主要思路是，将链表里的元素先迁移第一个到carry中，然后放入counter的空位置，
+		再迁移第一个（实际上的二号元素）到carry中，与counter中的元素做归并，归并后counter就调整到空位置，
+		不断迁移，直至容器为空。最后，遍历counter，将其所有链表归并，并交换回原容器中。 */
 		list<T, Alloc> carry;
 		list<T, Alloc> counter[64];
 		int fill = 0;
 		while (!empty()) {
+			// 移出第一个元素
 			carry.splice(carry.begin(), *this, begin());
+			// 注意每次i从0开始
 			int i = 0;
+			// 若counter[0]不为空，即有一个需要归并的元素，则进行归并
+			// 需要注意的是，随着i的更新，实际上counter里的链表存在个数是不一定的，
+			// 也就是说可能存在空链表和非空链表交替的情况，所以之后需要遍历整个counter进行总归并
 			while (i < fill && !counter[i].empty()) {
+				// 先归并
 				counter[i].merge(carry);
+				// 将归并后的链表交予carry，并更新i
 				carry.swap(counter[i++]);
 			}
+			// 归并后或者为第一个元素时，将其置入空的counter中
 			carry.swap(counter[i]);
+			// 记录counter的大小
 			if (i == fill)
 				++fill;
 		}
-
+		
 		for (int i = 1; i < fill; ++i)
 			counter[i].merge(counter[i - 1]);
+		
 		swap(counter[fill - 1]);
 	}
 
