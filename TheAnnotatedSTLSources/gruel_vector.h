@@ -83,6 +83,8 @@ namespace gruel {
 			auto i = std::copy(last, finish, first);
 			// 再删除多出来的部分
 			destory(i, finish);
+			finish = finish - (last - first);
+			return first;
 		}
 
 		// 调整vector的size大小

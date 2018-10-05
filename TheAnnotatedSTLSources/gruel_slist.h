@@ -8,17 +8,20 @@ namespace gruel {
 
 
 	/* 动用继承关系的好处是可以节省空间（我认为） */
+	// 节点基类只有指向下一节点的指针
 	struct _slist_node_base {
 		_slist_node_base *next;
 	};
 
 
+	// 节点类有数据域
 	template <typename T>
 	struct _slist_node : public _slist_node_base {
 		T data;
 	};
 
 
+	// 全局函数，将new_node插入到prev_node之前
 	inline _slist_node_base *_slist_make_link(
 		_slist_node_base *prev_node, _slist_node_base *new_node) {
 		new_node->next = prev_node->next;
@@ -27,6 +30,7 @@ namespace gruel {
 	}
 
 
+	// 全局函数，计算以node为头的单链表的长度
 	inline std::size_t _slist_size(_slist_node_base *node) {
 		std::size_t result = 0;
 		for (; node != nullptr; node = node->next)
@@ -47,6 +51,7 @@ namespace gruel {
 
 		_slist_iterator_base(_slist_node_base *x) : node(x) {}
 
+		// 因为是单向链表，所以只需要incr
 		void incr() { node = node->next; }
 
 		bool operator==(const _slist_iterator_base &x) const {
@@ -59,6 +64,7 @@ namespace gruel {
 	};
 
 
+	// 迭代器类
 	template <typename T, typename Ref, typename Ptr>
 	struct _slist_iterator : public _slist_iterator_base {
 
@@ -91,6 +97,7 @@ namespace gruel {
 	};
 
 
+	// 单向链表，该类省略了很多功能，但这些功能函数和list相近，可以借鉴
 	template <typename T, typename Alloc = alloc>
 	class slist {
 	public:
@@ -123,6 +130,7 @@ namespace gruel {
 			list_node_allocator::deallocate(node);
 		}
 	private:
+		// 头哨兵节点
 		list_node_base head;
 
 	public:
@@ -133,7 +141,9 @@ namespace gruel {
 
 	public:
 		iterator begin() { return iterator((list_node *)head.next); }
+		const_iterator begin() const { return const_iterator((list_node *)head.next); }
 		iterator end() { return iterator(nullptr); }
+		const_iterator end() const { return const_iterator(nullptr); }
 		size_type size() const { return _slist_size(head.next); }
 		bool empty() const { return head.next == nullptr; }
 
@@ -145,6 +155,20 @@ namespace gruel {
 
 	public:
 		reference front() { return ((list_node *)head.next)->data; }
+
+		// 注意新插入的元素在position之后
+		iterator insert_after(iterator position, const value_type &x) {
+			return iterator((list_node *)_slist_make_link(position.node, crete_node(x)));
+		}
+
+		// 注意这个erase删除的是传入迭代器的后继节点
+		iterator erase_after(iterator position) {
+			iterator old = prev;
+			++prev;
+			old.node->next = prev.node->next;
+			destory_node(prev);
+			return ++old;
+		}
 
 		void push_front(const value_type &x) {
 			_slist_make_link(&head, create_node(x));
@@ -159,6 +183,7 @@ namespace gruel {
 		void clear() {
 			auto cur = (list_node *)head.next;
 			while (cur != nullptr) {
+				// 删除一个指针时，可以用第三方变量记住，后面挺常用的
 				auto tmp = cur;
 				cur = cur->next;
 				destory_node(tmp);

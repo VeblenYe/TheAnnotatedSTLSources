@@ -8,13 +8,13 @@ namespace gruel {
 
 
 	// 用来决定缓冲区大小
-	// 就是计算每个缓冲区的元素个数
+	// 就是计算每个缓冲区的元素个数，sz为每个元素所占字节大小
 	std::size_t _deque_buf_size(std::size_t n, std::size_t sz) {
 		return n != 0 ? n : (sz < 512 ? std::size_t(512 / sz) : std::size_t(1));
 	}
 
 
-	// deque的迭代器
+	// deque的迭代器，BufSiz为指定缓冲区元素个数，0为默认
 	template <typename T, typename Ptr, typename Ref, std::size_t BufSiz = 0>
 	struct _deque_iterator {
 
@@ -29,6 +29,7 @@ namespace gruel {
 		}
 
 		// 迭代器需要的定义
+		// deque提供随机访问迭代器
 		using iterator_category = random_access_iterator_tag;
 		using value_type = T;
 		using pointer = Ptr;
@@ -43,7 +44,7 @@ namespace gruel {
 		using self = _deque_iterator;
 
 		// 保持与容器的联结
-		T *cur;
+		T *cur;				// 当前指向的元素位置
 		T *first;			// 当前缓冲区的头
 		T *last;			// 当前缓冲区的尾
 		map_pointer node;	// 指向管控中心
@@ -56,11 +57,11 @@ namespace gruel {
 		}
 
 		// 重载运算符
-
 		reference operator*() const { return *cur; }
 		pointer operator->() const { return &(operator*()); }
 
 		// 计算两个迭代器之间的距离，根据图示更容易理解
+		// 先计算相距几个缓冲区，在计算元素在各自缓冲区的距离
 		difference_type operator-(const self &x) const {
 			return difference_type(buffer_size() * (node - x.node - 1)) +
 				(cur - first) + (x.last - x.cur);
@@ -107,9 +108,11 @@ namespace gruel {
 				cur += n;
 			else {
 				// 不在一个缓冲区内，就要调整缓冲区了
+				// 注意是随机访问迭代器，既可以往前也可以往后
 				difference_type node_offset =
 					offset > 0 ? offset / difference_type(buffer_size())
 					: -difference_type((-offset - 1) / buffer_size()) - 1;
+				// 注意这里已经调整了缓冲区
 				set_node(node + node_offset);
 				cur = first + (offset - node_offset * difference_type(buffer_size()));
 			}
@@ -128,6 +131,7 @@ namespace gruel {
 			return tmp -= n;
 		}
 
+		// 这里的下标操作符是通过操作符+完成的
 		reference operator[](difference_type n) const { return *(*this + n); }
 		bool operator==(const self &x) const { return cur == x.cur; }
 		bool operator!=(const self &x) const { return !(*this == x); }
@@ -148,6 +152,7 @@ namespace gruel {
 		using pointer = T * ;
 		using reference = T & ;
 		using const_reference = const T &;
+		using difference_type = std::ptrdiff_t;
 		using size_type = std::size_t;
 
 		using iterator = _deque_iterator<T, T *, T &, BufSiz>;
@@ -155,6 +160,7 @@ namespace gruel {
 
 
 		// 构造函数
+		deque() : start(), finish(), map(nullptr), map_size(0) { create_map_and_nodes(0); }
 		deque(int n, const value_type &value) : start(), finish(), map(nullptr), map_size(0) {
 			fill_initialize(n, value);
 		}
@@ -228,14 +234,16 @@ namespace gruel {
 			// pos前有多少元素
 			auto index = pos - start;
 			if (index < (size() >> 1)) {
-				// 如果pos前的元素少于总元素一半，则将pos前元素前移
+				// 如果pos前的元素少于总元素一半，则将pos前元素后移，并删除头元素
 				std::copy_backward(start, pos, next);
 				pop_front();
 			}
 			else {
+				// 否则，将pos后的元素前移，并删除尾元素
 				std::copy(next, finish, pos);
 				pop_back();
 			}
+			// 返回相应位置迭代器
 			return start + index;
 		}
 
@@ -244,10 +252,12 @@ namespace gruel {
 
 
 		iterator insert(iterator pos, const value_type &x) {
+			// 在头插入
 			if (pos.cur == start.cur) {
 				push_front(x);
 				return start;
 			}
+			// 在尾插入
 			else if (pos.cur == finish.cur) {
 				push_back(x);
 				// finish不可改变
@@ -271,6 +281,7 @@ namespace gruel {
 		// map专属配置器，每次配置一个指针大小，返回是T **
 		using map_allocator = gruel::simple_alloc<pointer, Alloc>;
 
+		// 数据专属配置器，每次配置一个元素大小，返回T *
 		using data_allocator = gruel::simple_alloc<value_type, Alloc>;
 
 		// 头迭代器
@@ -278,6 +289,7 @@ namespace gruel {
 		// 尾迭代器
 		iterator finish;
 
+		// 管控中心
 		map_pointer map;
 
 		size_type map_size;
@@ -297,24 +309,30 @@ namespace gruel {
 
 		// 在尾端添加node
 		void reserve_map_at_back(size_type nodes_to_add = 1) {
+			// 如果map中尾部node的可用个数小于1
 			if (nodes_to_add > map_size - (finish.node - map + 1))
 				reallocate_map(nodes_to_add, false);
 		}
 
 		// 在头部添加node
 		void reserve_map_at_front(size_type nodes_to_add = 1) {
+			// 如果map中头部node的可用个数小于1
 			if (nodes_to_add > start.node - map)
 				reallocate_map(nodes_to_add, true);
 		}
 
+		// 根据num_elements配置合适的map和node
 		void create_map_and_nodes(size_type num_elements);
 
+		// 填充n个value
 		void fill_initialize(size_type n, const value_type &value) {
 			create_map_and_nodes(n);
 			map_pointer cur;
 			// 以下省略异常机制
+			// [start.node, finish.node)中充满元素
 			for (cur = start.node; cur < finish.node; ++cur)
 				gruel::uninitialized_fill(*cur, *cur + buffer_size(), value);
+			// 将剩余的元素填充
 			gruel::uninitialized_fill(finish.first, finish.cur, value);
 		}
 
@@ -361,9 +379,12 @@ namespace gruel {
 
 
 		iterator insert_aux(iterator pos, const value_type &x) {
+			// pos前元素
 			auto index = pos - start;
 			auto x_copy = x;
+			// pos前元素少于总元素一半
 			if (index < (size() / 2)) {
+				// 该技巧在vector中也有使用
 				push_front(front());
 				auto front1 = start;
 				++front1;
@@ -373,7 +394,7 @@ namespace gruel {
 				pos = start + index;
 				auto pos1 = pos;
 				++pos1;
-				// copy多用后移，主要针对同一内存区域
+				// copy多用前移，主要针对同一内存区域
 				std::copy(front2, pos1, front1);
 			}
 			else {
@@ -384,7 +405,7 @@ namespace gruel {
 				--back2;
 				// 这里感觉没有必要
 				pos = start + index;
-				// copy_backward多用前移
+				// copy_backward多用后移
 				std::copy_backward(pos, back2, back1);
 			}
 			*pos = x_copy;
@@ -404,11 +425,12 @@ namespace gruel {
 		map_size = std::max(size_type(8), num_nodes + 2);
 		map = map_allocator::allocate(map_size);
 
+		// 将map的中间node分配出去
 		map_pointer nstart = map + (map_size - num_nodes) / 2;
 		map_pointer nfinish = nstart + num_nodes - 1;
 
 		// 以下省略异常机制
-		// 这里可不能小于等于
+		// 这里需要小于等于
 		// 一般0xCDCDCDCD是没有分配的空间指针，实际上应是随机的，但VS给出该值用于方便调试
 		map_pointer cur;
 		for (cur = nstart; cur <= nfinish; ++cur)
@@ -444,14 +466,18 @@ namespace gruel {
 			size_type new_map_size = map_size + std::max(map_size, nodes_to_add) + 2;
 			map_pointer new_map = map_allocator::allocate(new_map_size);
 
+			// 还是设置在map中间区域的node
 			new_nstart = new_map + (new_map_size - new_num_nodes) / 2
 				+ (add_at_front ? nodes_to_add : 0);
 
+			// 将原数据拷贝到新区域，注意这里拷贝[start, finish + 1)
 			std::copy(start.node, finish.node + 1, new_nstart);
+			// 删除原数据并更新状态
 			map_allocator::deallocate(map, map_size);
 			map = new_map;
 			map_size = new_map_size;
 		}
+		// 重新设定迭代器
 		start.set_node(new_nstart);
 		finish.set_node(new_nstart + old_num_nodes - 1);
 	}
@@ -468,6 +494,7 @@ namespace gruel {
 			deallocate_node(*node);
 		}
 
+		// 还剩余两个以上节点
 		if (start.node != finish.node) {
 			destory(start.cur, start.last);
 			destory(finish.first, finish.cur);
@@ -486,27 +513,36 @@ namespace gruel {
 		// 如果清除区间是整个queue，则调用clear()；
 		if (first == start && last == finish) {
 			clear();
-			return finish();
+			return finish;
 		}
 		else {
+			// 需要删除的元素个数
 			auto n = last - first;
+			// 删除区间前的元素个数
 			auto elems_before = first - start;
+			// 如果删除区间前的元素个数小于删除后剩余元素的一半
 			if (elems_before < (size() - n) / 2) {
+				// 将删除区间前的元素后移
 				std::copy_backward(start, first, last);
+				// 设置新头迭代器，删除多余元素和节点
 				iterator new_start = start + n;
 				destory(start, new_start);
 				for (auto cur = start.node; cur < new_start.node; ++cur)
 					deallocate_node(*cur);
 				start = new_start;
 			}
+			// 如果删除区间前的元素个数大于删除后剩余元素的一半
 			else {
+				// 将删除区间前的元素前移
 				std::copy(last, finish, first);
+				// 设置新尾迭代器，删除多余元素和节点
 				iterator new_finish = finish - n;
 				destory(new_finish, finish);
 				for (auto cur = new_finish.node + 1; cur <= finish.node; ++cur)
 					deallocate_node(*cur);
 				finish = new_finish;
 			}
+			// 注意返回的是start加上原删除区间前的元素个数
 			return start + elems_before;
 		}
 	}

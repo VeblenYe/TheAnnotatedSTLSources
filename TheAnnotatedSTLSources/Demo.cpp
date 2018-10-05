@@ -7,6 +7,7 @@
 #include "gruel_set.h"
 #include "gruel_map.h"
 #include "gruel_list.h"
+#include "gruel_deque.h"
 
 
 using std::cout;
@@ -16,7 +17,7 @@ using std::ends;
 
 int main() {
 
-	gruel::list<int> ilist;
+	gruel::deque<int> ilist;
 	std::random_device r;
 	std::default_random_engine e(r());
 	std::uniform_int_distribution<int> u(0, 100);
@@ -26,8 +27,6 @@ int main() {
 	for (auto i : ilist)
 		cout << i << ends;
 	cout << endl;
-
-	ilist.sort();
 
 	for (auto i : ilist)
 		cout << i << ends;
