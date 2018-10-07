@@ -8,29 +8,31 @@
 #include "gruel_map.h"
 #include "gruel_list.h"
 #include "gruel_deque.h"
+#include "gruel_priority_queue.h"
 
 
 using std::cout;
 using std::endl;
 using std::ends;
 
+using namespace gruel;
+
 
 int main() {
 
-	gruel::deque<int> ilist;
-	std::random_device r;
-	std::default_random_engine e(r());
-	std::uniform_int_distribution<int> u(0, 100);
-	for (int i = 0; i < 13; ++i)
-		ilist.push_back(u(e));
+	int ia[9] = { 0,1,2,3,4,5,6,7,8 };
+	priority_queue<int> ipq(ia, ia + 9);
+	cout << ipq.size() << endl;
 
-	for (auto i : ilist)
-		cout << i << ends;
-	cout << endl;
+	cout << ipq.top() << endl;
 
-	for (auto i : ilist)
-		cout << i << ends;
+	ipq.pop();
 
+	cout << ipq.top() << endl;
+
+	ipq.push(10);
+
+	cout << ipq.top() << endl;
 
 	getchar();
 

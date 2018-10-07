@@ -15,9 +15,11 @@ namespace gruel {
 		// vector的嵌套类型定义
 		using value_type = T;
 		using pointer = value_type * ;
+		using const_pointer = const value_type *;
 		using iterator = value_type * ;
 		using const_iterator = const value_type *;
 		using reference = value_type & ;
+		using const_reference = const value_type &;
 		using size_type = std::size_t;
 		using difference_type = std::ptrdiff_t;
 
@@ -28,6 +30,14 @@ namespace gruel {
 		vector(int n, const T &value) { fill_initialize(n, value); }
 		vector(long n, const T &value) { fill_initialize(n, value); }
 		explicit vector(size_type n) { fill_initialize(n, T()); }
+
+		template <typename InputIterator>
+		vector(InputIterator first, InputIterator last) {
+			start = data_allocator::allocate(last - first);
+			uninitialized_copy(first, last, start);
+			finish = start + (last - first);
+			end_of_storage = finish;
+		}
 
 		~vector() {
 			destory(start, finish);
@@ -47,7 +57,9 @@ namespace gruel {
 		// 下标操作，若越界，则行为未定义
 		reference operator[](size_type n) { return *(begin() + n); }
 		reference front() { return *begin(); }
+		const_reference front() const { return *begin(); }
 		reference back() { return *(end() - 1); }
+		const_reference back() const { return *(end() - 1); }
 		void insert(iterator position, size_type n, const T &x);
 		// 在尾端插入新元素
 		void push_back(const T &x) {

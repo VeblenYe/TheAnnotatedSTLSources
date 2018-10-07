@@ -84,7 +84,7 @@ namespace gruel {
 	template <typename Iterator>
 	inline auto difference_type(const Iterator &)
 		-> typename iterator_traits<Iterator>::difference_type * {
-		return static_cast<typename iterator_traits<Iterator>::difference *>(nullptr);
+		return static_cast<typename iterator_traits<Iterator>::difference_type *>(nullptr);
 	}
 
 

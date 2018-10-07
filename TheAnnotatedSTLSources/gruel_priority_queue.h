@@ -7,7 +7,9 @@
 
 
 namespace gruel {
+	using namespace gruel;
 
+	// 优先队列
 	template <typename T, typename Sequence = gruel::vector<T>, 
 		typename Compare = std::less<typename Sequence::value_type>>
 	class priority_queue {
@@ -20,7 +22,7 @@ namespace gruel {
 		Sequence c;
 		Compare comp;
 	public:
-		priority_queue() :c() {}
+		priority_queue() : c() {}
 		explicit priority_queue(const Compare &x) : c(), comp(x) {}
 
 		template <typename InputIterator>
@@ -33,6 +35,8 @@ namespace gruel {
 			make_heap(c.begin(), c.end(), comp);
 		}
 
+		~priority_queue() {}
+
 
 		bool empty() const { return c.empty(); }
 		size_type size() const { return c.size(); }
@@ -40,12 +44,14 @@ namespace gruel {
 
 		void push(const value_type &x) {
 			c.push_back(x);
-			push_heap(c.begin(), c.end(), comp);
+			// 很奇怪，这里一定要指定是gruel
+			gruel::push_heap(c.begin(), c.end(), comp);
 		}
 
 		void pop() {
-			pop_heap(c.begin(), c.end(), comp);
+			gruel::pop_heap(c.begin(), c.end(), comp);
 			c.pop_back();
 		}
 	};
+
 }
