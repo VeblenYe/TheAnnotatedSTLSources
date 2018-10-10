@@ -3,6 +3,8 @@
 
 namespace gruel {
 
+	/* 一些hash仿函数，大部分都返回原值，对char *类型的变量做了一定处理，可以知道对于这里不含的类型是无法处理的 */
+
 	template <typename Key>
 	struct hash {};
 
