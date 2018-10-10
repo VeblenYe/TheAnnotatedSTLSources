@@ -6,6 +6,9 @@
 
 namespace gruel {
 
+	/* 综述：binary_heap，二叉堆（这里为最大堆），实际上就是一个完全二叉树，其性质为根节点为
+	所有节点中的最大节点，且可通过隐式表述，即通过一系列函数和其他容器实现 */
+
 	/* 该头文件包含了一系列堆操作的函数 */
 
 	template <typename RandomAccessIterator, typename Distance,

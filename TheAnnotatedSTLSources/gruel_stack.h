@@ -6,6 +6,8 @@
 
 namespace gruel {
 
+	/* 综述：stack，堆栈，以deque为底层容器，其元素存取顺序为后进先出LIFO */
+
 	template <typename T, typename Sequence>
 	bool operator==(const stack<T, Sequence> &lhs, const stack<T, Sequence> &rhs) {
 		return lhs.c == rhs.c;

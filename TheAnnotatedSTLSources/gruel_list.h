@@ -6,6 +6,11 @@
 
 namespace gruel {
 
+	/* 综述：list是一种序列式容器（Sequence Container），其提供与vector相似的操作，
+	其插入删除均为常数时间，但查找访问等操作则需要线性时间，其空间结构也与vector不同，
+	在内存中为离散分布（随便扯的），但因这一特性，其空间利用率非常高，没有丝毫浪费，
+	几乎没有容量的限制（相对上），也是最常使用的数据结构之一，其与vector的选择由实际情况决定 */
+
 	// list节点
 	template <typename T>
 	struct _list_node {

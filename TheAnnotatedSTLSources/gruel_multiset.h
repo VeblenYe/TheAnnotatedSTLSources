@@ -6,6 +6,8 @@
 
 namespace gruel {
 
+	/* 综述：multiset，多集，就是可以存放重复元素的set版本 */
+
 	template <typename Key, typename Compare = std::less<Key>, typename Alloc = alloc>
 	class multiset {
 		friend bool operator==(const multiset &, const multiset &);

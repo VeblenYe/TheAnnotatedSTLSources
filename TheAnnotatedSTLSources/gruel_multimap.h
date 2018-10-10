@@ -6,6 +6,8 @@
 
 namespace gruel {
 
+	/* 综述：multimap，多重映射（翻译这样我也没办法），就是可以存放相同键值元素的map版本 */
+
 	template <typename Key, typename Value, typename Compare = std::less<Key>, typename Alloc = alloc>
 	class multimap {
 	public:

@@ -295,6 +295,7 @@ namespace gruel {
 				}
 				// 最后直接交换临时vector，tmp在函数结束后自行析构，厉害了
 				// 能直接这样做的原因我觉得与begin()和end()的实现有关
+				// 一开始马虎写在for循环里。。
 				buckets.swap(tmp);
 			}
 		}

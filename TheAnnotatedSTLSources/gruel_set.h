@@ -7,8 +7,10 @@
 
 namespace gruel {
 
-	// set，所有元素会根据元素的键值自动排序，且元素的键值就是实值，且不允许有两个相同的键值，且不允许随意修改键值
-	// 其底层容器为rb_tree，且其容器操作大多转调用rb_tree完成
+	/* 综述：set，集合，是一中关联式容器（associative containers)，其所有元素会根据元素的键值自动排序，且元素的键值就是实值，不允许有两个相同的键值，不允许随意修改键值
+	其底层容器为rb_tree，且其容器操作大多转调用rb_tree完成 */
+
+
 	template <typename Key, typename Compare = std::less<Key>, typename Alloc = alloc>
 	class set {
 		friend bool operator==(const set &, const set &);

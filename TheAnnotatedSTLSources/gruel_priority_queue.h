@@ -7,7 +7,9 @@
 
 
 namespace gruel {
-	using namespace gruel;
+	
+	/* 综述：priority_queue，优先队列，以最大堆作为底层“容器”，元素存入时按照优先级排序，
+	元素取出依照其排序顺序取出 */
 
 	// 优先队列
 	template <typename T, typename Sequence = gruel::vector<T>, 

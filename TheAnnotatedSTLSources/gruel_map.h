@@ -6,6 +6,10 @@
 
 namespace gruel {
 
+	/* 综述：map。图，一种关联性容器（associative containers），其所有元素都会根据元素
+	的键值自动排序，map的所有元素都是pair，同时拥有实值（value)和键值(key)，且不允许两
+	个元素有相同的键值。其底层容器为红黑树 */
+
 	// C++14的多态lambda
 	// auto select1st = [](auto const &pair) { return pair.first; };
 

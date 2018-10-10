@@ -6,6 +6,8 @@
 
 namespace gruel {
 
+	/* 综述：queue，队列，其底层容器为deque，其元素存取顺序为先进先出FIFO */
+
 	template <typename T, typename Sequence = gruel::deque<T>>
 	class queue {
 		friend bool operator==(const queue &, const queue &);

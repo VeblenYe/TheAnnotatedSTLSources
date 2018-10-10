@@ -9,6 +9,9 @@
 
 namespace gruel {
 
+	/* 综述：RB-Tree是一种平衡二叉树，可在O(logN)的时间复杂度内提供对元素的查找访问操作，
+	其插入删除操作均为常数时间，还提供了对元素的自动排序性质，是一种很有用的数据结构 */
+
 	// 这样的定义我认为是为了以后的修改方便，有更大的弹性
 	using _rb_tree_color_type = bool;
 	const _rb_tree_color_type _rb_tree_red = false;

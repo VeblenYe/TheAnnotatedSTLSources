@@ -6,7 +6,10 @@
 
 namespace gruel {
 
-	// vector
+	/* 综述：vector是一种与数组相似的序列式容器（Sequence Container)，其对元素的插入、
+	删除、查找和访问等操作均是常数时间，其存储空间为连续线性空间，且能动态扩张，是运用最为
+	广泛的容器之一 */
+	
 	// vector提供随机访问迭代器，其所有功能都可通过原始指针完成
 	template <typename T, typename Alloc = alloc>
 	class vector {
