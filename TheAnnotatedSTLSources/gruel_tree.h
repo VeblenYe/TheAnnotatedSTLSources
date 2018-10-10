@@ -373,7 +373,7 @@ namespace gruel {
 			void clear() { 
 				_erase(root());
 			}
-			void swap(const self &t) noexcept;
+			void swap(self &t) noexcept;
 			void reset() {
 				header->parent = nullptr;
 				header->left = header;
@@ -716,7 +716,7 @@ namespace gruel {
 
 
 	template <typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
-	void rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::swap(const self &x) noexcept {
+	void rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::swap(self &x) noexcept {
 		if (root() == nullptr) {
 			// 两个都为空为啥还要交换，我也不懂
 			if (x.root() == nullptr) {

@@ -1,7 +1,7 @@
-#pragma once
+	#pragma once
 
 
-#include "gruel_memory.h"
+	#include "gruel_memory.h"
 
 
 namespace gruel {
@@ -56,6 +56,7 @@ namespace gruel {
 		bool empty() const { return begin() == end(); }
 		// 下标操作，若越界，则行为未定义
 		reference operator[](size_type n) { return *(begin() + n); }
+		const_reference operator[](size_type n) const { return *(begin() + n); }
 		reference front() { return *begin(); }
 		const_reference front() const { return *begin(); }
 		reference back() { return *(end() - 1); }
@@ -86,7 +87,7 @@ namespace gruel {
 			// 是尾端元素就调整finish后删除即可
 			--finish;
 			destory(finish);
-			return position;	
+			return position;
 		}
 
 		// 删除[first, last)区间内的元素
@@ -114,8 +115,37 @@ namespace gruel {
 			resize(new_size, T());
 		}
 
+
+		// reserve是容器预留空间，但在空间内不真正创建元素对象，所以在没有添加新的对象之前，
+		// 不能引用容器内的元素。加入新的元素时，要调用push_back()/insert()函数。
+		// resize是改变容器的大小，且在创建对象，因此，调用这个函数之后，就可以引用容器内的对象了，
+		// 因此当加入新的元素时，用operator[]操作符，或者用迭代器来引用元素对象。此时再调用push_back()函数，
+		// 是加在这个新的空间后面的。
+		void reserve(size_type new_cap) {
+			if (new_cap > capacity()) {
+				iterator new_start = data_allocator::allocate(new_cap);
+				iterator new_finish = new_start;
+
+				new_finish = uninitialized_copy(start, finish, new_start);
+
+				destory(begin(), end());
+				deallocate();
+
+				start = new_start;
+				finish = new_finish;
+				end_of_storage = start + new_cap;
+			}
+		}
+
 		void clear() {
 			erase(begin(), end());
+		}
+
+		void swap(vector &vec) {
+			using std::swap;
+			swap(start, vec.start);
+			swap(finish, vec.finish);
+			swap(end_of_storage, vec.end_of_storage);
 		}
 
 	protected:

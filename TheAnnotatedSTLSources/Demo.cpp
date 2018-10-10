@@ -9,6 +9,7 @@
 #include "gruel_list.h"
 #include "gruel_deque.h"
 #include "gruel_priority_queue.h"
+#include "gruel_hashtable.h"
 
 
 using std::cout;
@@ -20,19 +21,49 @@ using namespace gruel;
 
 int main() {
 
-	int ia[9] = { 0,1,2,3,4,5,6,7,8 };
-	priority_queue<int> ipq(ia, ia + 9);
-	cout << ipq.size() << endl;
+	hashtable<int, int, hash<int>, std::identity<int>, std::equal_to<int>, alloc> iht(50, hash<int>(), std::equal_to<int>());
 
-	cout << ipq.top() << endl;
+	cout << iht.size() << endl;
+	cout << iht.bucket_count() << endl;
+	cout << iht.max_bucket_count() << endl;
 
-	ipq.pop();
+	
+	
+	iht.insert_unique(59);
+	iht.insert_unique(63);
+	iht.insert_unique(108);
+	iht.insert_unique(2);
+	iht.insert_unique(53);
+	iht.insert_unique(55);
+	cout << iht.size() << endl;
 
-	cout << ipq.top() << endl;
+	for (auto it : iht)
+		cout << it << ends;
+	cout << endl;
+	
+	for (int i = 0; i < iht.bucket_count(); ++i) {
+		int n = iht.elems_in_bucket(i);
+		if (n != 0)
+			cout << "桶" << i << "拥有" << n << "个元素" << endl;
+	}
+	
+	for (int i = 0; i <= 47; ++i)
+		iht.insert_equal(i);
+	cout << iht.size() << endl;
+	cout << iht.bucket_count() << endl;
 
-	ipq.push(10);
+	for (int i = 0; i < iht.bucket_count(); ++i) {
+		int n = iht.elems_in_bucket(i);
+		if (n != 0)
+			cout << "桶" << i << "拥有" << n << "个元素" << endl;
+	}
 
-	cout << ipq.top() << endl;
+	for (auto it : iht)
+		cout << it << ends;
+	cout << endl;
+
+	cout << *(iht.find(2)) << endl;
+	cout << iht.count(2) << endl;
 
 	getchar();
 

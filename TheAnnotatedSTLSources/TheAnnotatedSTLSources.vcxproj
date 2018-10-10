@@ -129,6 +129,8 @@
     <ClInclude Include="gruel_config.h" />
     <ClInclude Include="gruel_construct.h" />
     <ClInclude Include="gruel_deque.h" />
+    <ClInclude Include="gruel_hashtable.h" />
+    <ClInclude Include="gruel_hash_fun.h" />
     <ClInclude Include="gruel_heap.h" />
     <ClInclude Include="gruel_iterator.h" />
     <ClInclude Include="gruel_alloc.h" />

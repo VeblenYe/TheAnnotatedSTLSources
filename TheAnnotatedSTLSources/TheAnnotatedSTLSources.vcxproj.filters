@@ -83,5 +83,11 @@
     <ClInclude Include="gruel_multimap.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="gruel_hashtable.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gruel_hash_fun.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
