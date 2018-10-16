@@ -324,8 +324,10 @@ namespace gruel {
 			size_type max_size() const { return (size_type)(-1); }
 			iterator find(const Key &k);
 			const_iterator find(const Key &k) const;
+			// 查找第一个不小于k的节点
 			iterator lower_bound(const Key &k);
 			const_iterator lower_bound(const Key &k) const;
+			// 查找第一个大于k的节点
 			iterator upper_bound(const Key &k);
 			const_iterator upper_bound(const Key &k) const;
 			std::pair<iterator, iterator> equal_range(const Key &k) {
@@ -339,8 +341,9 @@ namespace gruel {
 				return (size_type)distance(p.first, p.second);
 			}
 			void erase(link_type x) { _erase(x); }
+			// 返回删除元素的个数
 			size_type erase(const Key &x) {
-				std::pair<const_iterator, const_iterator> p = equal_range(x);
+				std::pair<iterator, iterator> p = equal_range(x);
 				size_type n = distance(p.first, p.second);
 				erase(p.first, p.second);
 				return n;

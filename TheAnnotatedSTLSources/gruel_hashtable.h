@@ -26,7 +26,15 @@ namespace gruel {
 	};
 
 	
-	// hashtable的前置声明
+	// 前置声明
+	template <typename Value, typename Key, typename HashFun, typename ExtractKey,
+		typename EqualKey, typename Alloc>
+		struct _hashtable_iterator;
+
+	template <typename Value, typename Key, typename HashFun, typename ExtractKey,
+		typename EqualKey, typename Alloc>
+		struct _hashtable_const_iterator;
+
 	template <typename Value, typename Key, typename HashFun, typename ExtractKey,
 		typename EqualKey, typename Alloc>
 		class hashtable;
@@ -42,7 +50,7 @@ namespace gruel {
 		// 嵌套定义
 		using hashtable = hashtable<Value, Key, HashFun, ExtractKey, EqualKey, Alloc>;
 		using iterator = _hashtable_iterator<Value, Key, HashFun, ExtractKey, EqualKey, Alloc>;
-		using const_iterator = _hashtable_iterator<Value, Key, HashFun, ExtractKey, EqualKey, Alloc>;
+		using const_iterator = _hashtable_const_iterator<Value, Key, HashFun, ExtractKey, EqualKey, Alloc>;
 		using node = _hashtable_node<Value>;
 
 		using iterator_category = forward_iterator_tag;
@@ -58,8 +66,9 @@ namespace gruel {
 		_hashtable_iterator() {}
 		_hashtable_iterator(node *n, hashtable *tab) : cur(n), ht(tab) {}
 
-		reference operator*() { return cur->val; }
-		pointer operator->() { return &(operator*()); }
+		reference operator*() const { return cur->val; }
+		pointer operator->() const { return &(operator*()); }
+		// 注意没有定义后退操作
 		iterator &operator++();
 		iterator operator++(int);
 		// 判等
@@ -97,6 +106,69 @@ namespace gruel {
 	}
 
 
+	/* hashtable的常量迭代器 */
+	template <typename Value, typename Key, typename HashFun, typename ExtractKey,
+		typename EqualKey, typename Alloc = alloc>
+		struct _hashtable_const_iterator {
+
+		// 嵌套定义
+		using hashtable = hashtable<Value, Key, HashFun, ExtractKey, EqualKey, Alloc>;
+		using iterator = _hashtable_iterator<Value, Key, HashFun, ExtractKey, EqualKey, Alloc>;
+		using const_iterator = _hashtable_const_iterator<Value, Key, HashFun, ExtractKey, EqualKey, Alloc>;
+		using node = _hashtable_node<Value>;
+
+		using iterator_category = forward_iterator_tag;
+		using value_type = Value;
+		using pointer = const value_type * ;
+		using reference = const value_type & ;
+		using size_type = std::size_t;
+		using difference_type = std::ptrdiff_t;
+
+		const node *cur;	// 指向当前节点
+		const hashtable *ht;	// 与hashtable保持连接，因为有时要跳到新的bucket
+
+		_hashtable_const_iterator() {}
+		_hashtable_const_iterator(const node *n, const hashtable *tab) : cur(n), ht(tab) {}
+		// 注意这个类型转换构造函数
+		_hashtable_const_iterator(const iterator &it) : cur(it.cur), ht(it.ht) {}
+
+		reference operator*() const { return cur->val; }
+		pointer operator->() const { return &(operator*()); }
+		// 注意没有定义后退操作
+		const_iterator &operator++();
+		const_iterator operator++(int);
+		// 判等
+		bool operator==(const const_iterator &it) const { return cur == it.cur; }
+		bool operator!=(const const_iterator &it) const { return cur != it.cur; }
+	};
+
+
+	template <typename V, typename K, typename HF, typename ExK, typename EqK, typename A>
+	typename _hashtable_const_iterator<V, K, HF, ExK, EqK, A>::const_iterator &
+		_hashtable_const_iterator<V, K, HF, ExK, EqK, A>::operator++() {
+
+		const node *old = cur;	// 记录当前节点，用于确定"bucket"
+		cur = cur->next;	// 下一节点
+		if (!cur) {
+			// 如果下一节点不存在，则需要跳bucket
+			size_type bucket = ht->bkt_num(old->val);	// 找到当前节点的bucket
+			while (!cur && ++bucket < ht->buckets.size())
+				// 查找下一个有node存在的bucket
+				cur = ht->buckets[bucket];
+		}
+
+		return *this;
+	}
+
+	template <typename V, typename K, typename HF, typename ExK, typename EqK, typename A>
+	typename _hashtable_const_iterator<V, K, HF, ExK, EqK, A>::const_iterator
+		_hashtable_const_iterator<V, K, HF, ExK, EqK, A>::operator++(int) {
+		auto tmp = *this;
+		++*this;
+		return tmp;
+	}
+
+
 	// 虽说开链法并不需要质数，但还是提供质数数量的桶
 	// 共有28个质数，每个质数大小差不多为前一个质数两倍
 	// 可知bucket的最大个数为429496729
@@ -127,6 +199,7 @@ namespace gruel {
 		class hashtable {
 		// 友元类声明
 		friend _hashtable_iterator<Value, Key, HashFun, ExtractKey, EqualKey, Alloc>;
+		friend _hashtable_const_iterator<Value, Key, HashFun, ExtractKey, EqualKey, Alloc>;
 		public:
 			// 内嵌定义
 			using hasher = HashFun;
@@ -137,10 +210,11 @@ namespace gruel {
 			using pointer = value_type * ;
 			using const_pointer = const value_type *;
 			using reference = value_type & ;
-			using iterator = _hashtable_iterator<Value, Key, HashFun, ExtractKey, EqualKey, Alloc>;
-			using const_iterator = _hashtable_iterator<Value, Key, HashFun, ExtractKey, EqualKey, Alloc>;
 			using const_reference = const value_type &;
 			using difference_type = std::ptrdiff_t;
+
+			using iterator = _hashtable_iterator<Value, Key, HashFun, ExtractKey, EqualKey, Alloc>;
+			using const_iterator = _hashtable_const_iterator<Value, Key, HashFun, ExtractKey, EqualKey, Alloc>;
 
 		private:
 			// 注意这里都是类实例
@@ -151,6 +225,8 @@ namespace gruel {
 			// 以node为单位分配空间
 			using node = _hashtable_node<Value>;
 			using node_allocator = simple_alloc<node, Alloc>;
+
+			using self = hashtable;
 
 			// bucket的实现采用vector
 			vector<node *, Alloc> buckets;
@@ -166,7 +242,7 @@ namespace gruel {
 
 			// 删除节点
 			void delete_node(node *n) {
-				destory(n->val);
+				destory(&n->val);
 				node_allocator::deallocate(n);
 			}
 
@@ -201,6 +277,33 @@ namespace gruel {
 				return hash(key) % n;
 			}
 
+			void erase_bucket(const size_type n, node *first, node *last) {
+				node *cur = buckets[n];
+				if (cur == first)
+					return erase_bucket(n, last);
+				else {
+					node *next;
+					// 找到first
+					for (next = cur->next; next != first; cur = next, next = cur->next);
+					while (next != last) {
+						cur->next = next->next;
+						delete_node(next);
+						next = cur->next;
+						--num_elements;
+					}
+				}
+			}
+			void erase_bucket(const size_type n, node *last) {
+				node *cur = buckets[n];
+				while (cur != last) {
+					node *next = cur->next;
+					delete_node(cur);
+					cur = next;
+					buckets[n] = cur;
+					--num_elements;
+				}
+			}
+
 		public:
 
 			// 构造函数，注意没有默认构造函数
@@ -209,7 +312,29 @@ namespace gruel {
 				initialize_buckets(n);
 			}
 
+			hashtable(const hashtable &ht) : hash(ht.hash_funct()), equals(ht.key_eq()), get_key(ht.get_key) {
+				copy_from(ht);
+			}
+
+			self &operator=(const self &ht) {
+				if (this != &ht) {
+					clear();
+					hash = ht.hash;
+					equals = ht.equals;
+					get_key = ht.get_key;
+					copy_from(ht);
+				}
+				return *this;
+			}
+
+			~hashtable() { clear(); }
+
+			hasher hash_funct() const { return hash; }
+			key_equal key_eq() const { return equals; }
+
 			size_type size() const { return num_elements; }
+			size_type max_size() const { return size_type(-1); }
+			bool empty() const { return num_elements == 0; }
 			// 返回桶的个数
 			size_type bucket_count() const { return buckets.size(); }
 			// 返回每个桶中的节点个数
@@ -226,10 +351,22 @@ namespace gruel {
 			void resize(size_type num_elements_hint);
 
 			// 头尾迭代器，自己写的，应该是这样
-			iterator begin() { return iterator(*buckets.begin(), this); }
-			const_iterator begin() const { return iterator(*buckets.begin(), this); }
+			iterator begin() {
+				for (size_type n = 0; n < buckets.size(); ++n)
+					if (buckets[n])
+						return iterator(buckets[n], this);
+				return end();
+			}
+			const_iterator begin() const {
+				for (size_type n = 0; n < buckets.size(); ++n)
+					if (buckets[n])
+						// 出现错误：无法从"initializer list"转换为"gruel::_hashtable_iterator<Value, Key, HashFun, ExtractKey, EqualKey, Alloc>
+						// 什么鬼，这里是返回一个临时对象啊
+						return const_iterator(buckets[n], this);
+				return end();
+			}
 			iterator end() { return iterator(nullptr, this); }
-			const_iterator end() const { return iterator(nullptr, this); }
+			const_iterator end() const { return const_iterator(nullptr, this); }
 
 			// 插入，不可重复
 			std::pair<iterator, bool> insert_unique(const value_type &obj) {
@@ -237,10 +374,119 @@ namespace gruel {
 				return insert_unique_noresize(obj);
 			}
 
+			template <typename InputIterator>
+			void insert_unique(InputIterator first, InputIterator last) {
+				size_type n = distance(first, last);
+				resize(num_elements + n);
+				while (first != last)
+					insert_unique_noresize(*first++);
+			}
+
 			// 插入，可重复
 			iterator insert_equal(const value_type &obj) {
 				resize(num_elements + 1);
 				return insert_equal_noresize(obj);
+			}
+
+			template <typename InputIterator>
+			void insert_equal(InputIterator first, InputIterator last) {
+				size_type n = distance(first, last);
+				resize(num_elements + n);
+				while (first != last)
+					insert_equal_noresize(*first++);
+			}
+
+			// 删除指定键值元素，并返回元素个数
+			// 学习rb_tree中利用equal_range（注：可不能学习，这是无序容器）
+			// 思路看代码即可
+			size_type erase(const key_type &key) {
+				const size_type n = bkt_num(key);
+				node *first = buckets[n];
+				size_type erased = 0;
+
+				if (first) {
+					node *cur = first;
+					node *next = cur->next;
+					while (next) {
+						if (equals(get_key(next->val), key)) {
+							cur->next = next->next;
+							delete_node(next);
+							next = cur->next;
+							++erased;
+							--num_elements;
+						}
+						else {
+							cur = next;
+							next = cur->next;
+						}
+					}
+					if (equals(get_key(first->val), key)) {
+						buckets[n] = first->next;
+						delete_node(first);
+						++erased;
+						--num_elements;
+					}
+				}
+				return erased;
+			}
+			// 有点类似单向链表的删除，不过这样子效率好低啊
+			void erase(const iterator &it) {
+				node *p = it.cur;
+				if (p) {
+					const size_type n = bkt_num(get_key(p->val));
+					node *cur = buckets[n];
+
+					// 如果要删除的节点为头节点
+					if (cur == p) {
+						buckets[n] = cur->next;
+						delete_node(cur);
+						--num_elements;
+					}
+					else {
+						node *next = cur->next;
+						while (next) {
+							if (next == p) {
+								cur->next = next->next;
+								delete_node(next);
+								--num_elements;
+								break;
+							}
+							else {
+								cur = next;
+								next = cur->next;
+							}
+						}
+					}
+				}
+			}
+			// 这个删除也蛮好玩的，有点类似deque
+			void erase(iterator first, iterator last) {
+				// 先找到各自在的桶
+				size_type first_bucket = first.cur ? get_key(first.cur->val) : buckets.size();
+				size_type last_bucket = last.cur ? get_key(last.cur->val) : buckets.size();
+
+				if (first == last)
+					return;
+				// 在同一个桶
+				else if (first_bucket == last_bucket)
+					erase_bucket(first_bucket, first.cur, last.cur);
+				// 不同的桶
+				else {
+					erase_bucket(first_bucket, first.cur, nullptr);
+					for (size_type n = first_bucket + 1; n < last_bucket; ++n)
+						erase_bucket(n, nullptr);
+					if (last_bucket == buckets.size())
+						erase_bucket(last_bucket, last.cur);
+				}
+			}
+
+			// 这里就转型后再转调用了，注意只有非const转const才可以
+			void erase(const const_iterator &it) {
+				erase(iterator(const_cast<node *>(it.cur), const_cast<hashtable *>(it.ht)));
+			}
+			void erase(const_iterator first, const_iterator last) {
+				erase(iterator(const_cast<node *>(first.cur), const_cast<hashtable *>(first.ht)),
+					iterator(const_cast<node *>(last.cur), const_cast<hashtable *>(last.ht)));
 			}
 
 			// 清空节点
@@ -267,6 +513,51 @@ namespace gruel {
 					if (equals(get_key(cur->val), key))
 						++result;
 				return result;
+			}
+
+			// 跟我原来想的差不多
+			std::pair<iterator, iterator> equal_range(const key_type &key) {
+				const size_type n = bkt_num(key);
+
+				for (node *first = buckets[n]; first; first = first->next)
+					if (equals(get_key(first->val), key)) {
+						for (node *cur = first; cur; cur = cur->next)
+							if (!equals(get_key(first->val), key))
+								return { iterator(first, this), iterator(cur, this) };
+						for (size_type m = n + 1; m < buckets.size(); ++m)
+							if (buckets[m])
+								return { iterator(first, this), iterator(buckets[m], this) };
+						return { iterator(first, this), end() };
+					}
+
+				return { end(), end() };
+			}
+
+			std::pair<const_iterator, const_iterator> equal_range(const key_type &key) const {
+				const size_type n = bkt_num(key);
+
+				for (node *first = buckets[n]; first; first = first->next)
+					if (equals(get_key(first->val), key)) {
+						for (node *cur = first; cur; cur = cur->next)
+							if (!equals(get_key(first->val), key))
+								return { const_iterator(first, this), const_iterator(cur, this) };
+						for (size_type m = n + 1; m < buckets.size(); ++m)
+							if (buckets[m])
+								return { const_iterator(first, this), const_iterator(buckets[m], this) };
+						return { const_iterator(first, this), end() };
+					}
+
+				return { end(), end() };
+			}
+
+			void swap(hashtable &ht) noexcept {
+				using std::swap;
+				buckets.swap(ht.buckets);
+				swap(num_elements, ht.num_elements);
+				swap(hash, ht.hash);
+				swap(equals, ht.equals);
+				swap(get_key, ht.get_key);
+				// 依旧不清楚怎么交换配置器，而且也觉得没有必要交换
 			}
 	};
 
