@@ -362,6 +362,8 @@ namespace gruel {
 					if (buckets[n])
 						// 出现错误：无法从"initializer list"转换为"gruel::_hashtable_iterator<Value, Key, HashFun, ExtractKey, EqualKey, Alloc>
 						// 什么鬼，这里是返回一个临时对象啊
+						// 原因是传入的参量为const，迭代器没有对应的构造函数
+						// 解决方法为定义一个新的const迭代器
 						return const_iterator(buckets[n], this);
 				return end();
 			}
