@@ -4,6 +4,7 @@
 #include "gruel_memory.h"
 #include "gruel_hash_fun.h"
 #include "gruel_vector.h"
+#include "gruel_functional.h"
 
 
 namespace gruel {
@@ -255,7 +256,7 @@ namespace gruel {
 				num_elements = 0;
 			}
 
-			std::pair<iterator, bool> insert_unique_noresize(const value_type &obj);
+			pair<iterator, bool> insert_unique_noresize(const value_type &obj);
 
 			iterator insert_equal_noresize(const value_type &obj);
 
@@ -370,8 +371,25 @@ namespace gruel {
 			iterator end() { return iterator(nullptr, this); }
 			const_iterator end() const { return const_iterator(nullptr, this); }
 
+			reference find_or_insert(const value_type &obj) {
+				resize(num_elements + 1);
+
+				const size_type n = bkt_num(obj);
+				node *first = buckets[n];
+
+				for (node *cur = first; cur; cur = cur->next)
+					if (equals(get_key(cur->val)), get_key(obj))
+						return cur->val;
+
+				node *tmp = new_node(obj);
+				tmp->next = first;
+				buckets[n] = tmp;
+				++num_elements;
+				return tmp->val;
+			}
+
 			// 插入，不可重复
-			std::pair<iterator, bool> insert_unique(const value_type &obj) {
+			pair<iterator, bool> insert_unique(const value_type &obj) {
 				resize(num_elements + 1);
 				return insert_unique_noresize(obj);
 			}
@@ -402,7 +420,7 @@ namespace gruel {
 			// 学习rb_tree中利用equal_range（注：可不能学习，这是无序容器）
 			// 思路看代码即可
 			size_type erase(const key_type &key) {
-				const size_type n = bkt_num(key);
+				const size_type n = bkt_num_key(key);
 				node *first = buckets[n];
 				size_type erased = 0;
 
@@ -435,7 +453,7 @@ namespace gruel {
 			void erase(const iterator &it) {
 				node *p = it.cur;
 				if (p) {
-					const size_type n = bkt_num(get_key(p->val));
+					const size_type n = bkt_num(p->val);
 					node *cur = buckets[n];
 
 					// 如果要删除的节点为头节点
@@ -499,7 +517,7 @@ namespace gruel {
 
 			// 查找元素
 			iterator find(const key_type &key) {
-				const size_type n = bkt_num(key);	// 确定桶
+				const size_type n = bkt_num_key(key);	// 确定桶
 				node *first;
 				// 在该桶中查找
 				for (first = buckets[n]; first && !equals(get_key(first->val), key); first = first->next);
@@ -508,7 +526,7 @@ namespace gruel {
 
 			// 计算给定元素个数
 			size_type count(const key_type &key) const {
-				const size_type n = bkt_num(key);	// 确定桶
+				const size_type n = bkt_num_key(key);	// 确定桶
 				size_type result = 0;
 				// 在该桶中查找统计
 				for (const node *cur = buckets[n]; cur; cur = cur->next)
@@ -518,8 +536,8 @@ namespace gruel {
 			}
 
 			// 跟我原来想的差不多
-			std::pair<iterator, iterator> equal_range(const key_type &key) {
-				const size_type n = bkt_num(key);
+			pair<iterator, iterator> equal_range(const key_type &key) {
+				const size_type n = bkt_num_key(key);
 
 				for (node *first = buckets[n]; first; first = first->next)
 					if (equals(get_key(first->val), key)) {
@@ -535,8 +553,8 @@ namespace gruel {
 				return { end(), end() };
 			}
 
-			std::pair<const_iterator, const_iterator> equal_range(const key_type &key) const {
-				const size_type n = bkt_num(key);
+			pair<const_iterator, const_iterator> equal_range(const key_type &key) const {
+				const size_type n = bkt_num_key(key);
 
 				for (node *first = buckets[n]; first; first = first->next)
 					if (equals(get_key(first->val), key)) {
@@ -597,7 +615,7 @@ namespace gruel {
 
 	// 插入不重复元素的实际操作，NoResize意为这里不改变hashtable桶个数
 	template <typename V, typename K, typename HF, typename Ex, typename Eq, typename A>
-	std::pair<typename hashtable<V, K, HF, Ex, Eq, A>::iterator, bool>
+	pair<typename hashtable<V, K, HF, Ex, Eq, A>::iterator, bool>
 		hashtable<V, K, HF, Ex, Eq, A>::insert_unique_noresize(const value_type &obj) {
 		const size_type n = bkt_num(obj);	// 查找对应桶
 		node *first = buckets[n];

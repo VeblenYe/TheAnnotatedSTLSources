@@ -12,7 +12,7 @@ namespace gruel {
 	元素取出依照其排序顺序取出 */
 
 	// 优先队列
-	template <typename T, typename Sequence = gruel::vector<T>, 
+	template <typename T, typename Sequence = vector<T>, 
 		typename Compare = std::less<typename Sequence::value_type>>
 	class priority_queue {
 	public:

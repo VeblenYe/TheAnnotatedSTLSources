@@ -5,6 +5,7 @@
 
 
 #include "gruel_memory.h"
+#include "gruel_functional.h"
 
 
 namespace gruel {
@@ -175,7 +176,7 @@ namespace gruel {
 			using base_ptr = _rb_tree_node_base * ;
 			using rb_tree_node = _rb_tree_node<Value>;
 			// 以节点为单位分配内存
-			using rb_tree_node_allocator = gruel::simple_alloc<rb_tree_node, Alloc>;
+			using rb_tree_node_allocator = simple_alloc<rb_tree_node, Alloc>;
 			using color_type = _rb_tree_color_type;
 			using self = rb_tree<Key, Value, KeyOfValue, Compare, Alloc>;
 
@@ -330,20 +331,20 @@ namespace gruel {
 			// 查找第一个大于k的节点
 			iterator upper_bound(const Key &k);
 			const_iterator upper_bound(const Key &k) const;
-			std::pair<iterator, iterator> equal_range(const Key &k) {
+			pair<iterator, iterator> equal_range(const Key &k) {
 				return { lower_bound(k), upper_bound(k) };
 			}
-			std::pair<const_iterator, const_iterator> equal_range(const Key &k) const {
+			pair<const_iterator, const_iterator> equal_range(const Key &k) const {
 				return { lower_bound(k), upper_bound(k) };
 			}
 			size_type count(const Key &k) const {
-				std::pair<const_iterator, const_iterator> p = equal_range(k);
+				pair<const_iterator, const_iterator> p = equal_range(k);
 				return (size_type)distance(p.first, p.second);
 			}
 			void erase(link_type x) { _erase(x); }
 			// 返回删除元素的个数
 			size_type erase(const Key &x) {
-				std::pair<iterator, iterator> p = equal_range(x);
+				pair<iterator, iterator> p = equal_range(x);
 				size_type n = distance(p.first, p.second);
 				erase(p.first, p.second);
 				return n;
@@ -361,7 +362,7 @@ namespace gruel {
 					while (first != last)
 						erase(first++);
 			}
-			std::pair<iterator, bool> insert_unique(const value_type &x);
+			pair<iterator, bool> insert_unique(const value_type &x);
 			iterator insert_unique(iterator position, const value_type &x);
 			template <typename InputIterator>
 			void insert_unique(InputIterator first, InputIterator last) {
@@ -425,7 +426,7 @@ namespace gruel {
 
 	// 插入操作，节点键值不能重复
 	template <typename Key, typename Value, typename KeyOfValue, typename Compare, typename Alloc>
-	std::pair<typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator, bool>
+	pair<typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator, bool>
 		rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::insert_unique(const value_type &v) {
 
 		link_type y = header;

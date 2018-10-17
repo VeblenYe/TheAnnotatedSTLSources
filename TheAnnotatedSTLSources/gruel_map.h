@@ -2,6 +2,7 @@
 
 
 #include "gruel_tree.h"
+#include "gruel_functional.h"
 
 
 namespace gruel {
@@ -28,7 +29,7 @@ namespace gruel {
 		using key_type = Key;	// 键值类型
 		using data_type = Value;	// 实值类型
 		using mapped_type = Value;
-		using value_type = std::pair<const Key, Value>;	// 元素类型（键值/实值）
+		using value_type = pair<const Key, Value>;	// 元素类型（键值/实值）
 		using key_compare = Compare;	// 键值比较函数
 
 		// 定义一个仿函数functor，其作用是调用“元素比较函数”
@@ -45,7 +46,7 @@ namespace gruel {
 
 	private:
 		// 注意这里的类型，元素类型是pair，而pair.first作为键值，源码实现用了select1st，这里直接使用Key
-		using rep_type = rb_tree<key_type, value_type, Key, key_compare, Alloc>;
+		using rep_type = rb_tree<key_type, value_type, select1st<value_type>, key_compare, Alloc>;
 		rep_type t;
 
 	public:
@@ -98,7 +99,7 @@ namespace gruel {
 		}
 		void swap(self &x) { t.swap(x.t); }
 
-		std::pair<iterator, bool> insert(const value_type &x) {
+		pair<iterator, bool> insert(const value_type &x) {
 			return t.insert_unique(x);
 		}
 
@@ -134,10 +135,10 @@ namespace gruel {
 		const_iterator lower_bound(const key_type &x) const { return t.lower_bound(x); }
 		iterator upper_bound(const key_type &x) { return t.upper_bound(x); }
 		const_iterator upper_bound(const key_type &x) const { return t.upper_bound(x); }
-		std::pair<iterator, iterator> equal_range(const key_type &x) {
+		pair<iterator, iterator> equal_range(const key_type &x) {
 			return t.equal_range(x);
 		}
-		std::pair<const_iterator, const_iterator> equal_range(const key_type &x) const {
+		pair<const_iterator, const_iterator> equal_range(const key_type &x) const {
 			return t.equal_range(x);
 		}
 	};

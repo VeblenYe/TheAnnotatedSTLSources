@@ -95,5 +95,14 @@
     <ClInclude Include="gruel_hash_multiset.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="gruel_hash_map.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gruel_hash_multimap.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gruel_functional.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

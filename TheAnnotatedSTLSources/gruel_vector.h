@@ -1,7 +1,7 @@
-	#pragma once
+#pragma once
 
 
-	#include "gruel_memory.h"
+#include "gruel_memory.h"
 
 
 namespace gruel {
