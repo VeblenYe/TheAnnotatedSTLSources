@@ -3,7 +3,6 @@
 
 #include "gruel_vector.h"
 #include "gruel_heap.h"
-#include <functional>
 
 
 namespace gruel {

@@ -4,8 +4,8 @@
 /* 发现如果用了std的数据结构，比如std::pair，iterator_traits就推断不出来 */
 
 #include <iostream>
-#include "gruel_hash_map.h"
-#include "gruel_hash_set.h"
+#include <iterator>
+#include "gruel_numeric.h"
 #include "gruel_vector.h"
 
 using std::cout;
@@ -17,12 +17,13 @@ using namespace gruel;
 
 int main() {
 	
-	hash_map<int, int> hm;
+	int ia[5] = { 1,2,3,4,5 };
+	vector<int> iv(ia, ia + 5);
 
-	hm.insert({ 3,3 });
+	cout << accumulate(iv.begin(), iv.end(), 0) << endl;
+	cout << inner_product(iv.begin(), iv.end(), iv.begin(), 10) << endl;
 
-	for (auto i : hm)
-		cout << i.first << i.second << ends;
+	cout << power(10, 3) << endl;
 
 	getchar();
 

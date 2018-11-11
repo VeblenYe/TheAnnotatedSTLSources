@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <functional>
+#include "gruel_functional.h"
 #include "gruel_tree.h"
 
 
@@ -11,7 +11,7 @@ namespace gruel {
 	其底层容器为rb_tree，且其容器操作大多转调用rb_tree完成 */
 
 
-	template <typename Key, typename Compare = std::less<Key>, typename Alloc = alloc>
+	template <typename Key, typename Compare = less<Key>, typename Alloc = alloc>
 	class set {
 		friend bool operator==(const set &, const set &);
 		friend bool operator<(const set &, const set &);
@@ -23,7 +23,7 @@ namespace gruel {
 
 	private:
 		// set的底层容器为RB-Tree
-		using rep_type = rb_tree<key_type, value_type, std::identity<value_type>, key_compare, Alloc>;
+		using rep_type = rb_tree<key_type, value_type, identity<value_type>, key_compare, Alloc>;
 		using rep_iterator = typename rep_type::iterator;
 		rep_type t;
 

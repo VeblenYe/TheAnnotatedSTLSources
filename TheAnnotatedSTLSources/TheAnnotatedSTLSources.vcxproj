@@ -126,6 +126,9 @@
     <ClCompile Include="Demo.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="gruel_algo.h" />
+    <ClInclude Include="gruel_algobase.h" />
+    <ClInclude Include="gruel_algorithm.h" />
     <ClInclude Include="gruel_config.h" />
     <ClInclude Include="gruel_construct.h" />
     <ClInclude Include="gruel_deque.h" />
@@ -143,6 +146,7 @@
     <ClInclude Include="gruel_map.h" />
     <ClInclude Include="gruel_memory.h" />
     <ClInclude Include="gruel_multiset.h" />
+    <ClInclude Include="gruel_numeric.h" />
     <ClInclude Include="gruel_priority_queue.h" />
     <ClInclude Include="gruel_queue.h" />
     <ClInclude Include="gruel_set.h" />

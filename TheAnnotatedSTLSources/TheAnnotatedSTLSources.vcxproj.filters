@@ -16,6 +16,9 @@
     <Filter Include="头文件\memory">
       <UniqueIdentifier>{44c4dc94-163d-4ee9-8e43-c4e8455504bb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\algorithm">
+      <UniqueIdentifier>{b32eb1d6-4328-4614-a36e-1dbfaf8854d5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Demo.cpp">
@@ -103,6 +106,18 @@
     </ClInclude>
     <ClInclude Include="gruel_functional.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gruel_algo.h">
+      <Filter>头文件\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="gruel_algobase.h">
+      <Filter>头文件\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="gruel_numeric.h">
+      <Filter>头文件\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="gruel_algorithm.h">
+      <Filter>头文件\algorithm</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

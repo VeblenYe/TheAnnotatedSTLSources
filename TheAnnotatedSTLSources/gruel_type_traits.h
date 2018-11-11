@@ -18,7 +18,7 @@ namespace gruel {
 	};
 
 	
-	/* 以下所有均为偏特化版 */
+	/* 以下所有均为全特化版 */
 	template <>
 	struct _type_traits<char> {
 		using has_trivial_default_constructor = _true_type;

@@ -4,7 +4,7 @@
 #include "gruel_iterator.h"
 #include "gruel_type_traits.h"
 #include "gruel_construct.h"
-#include <algorithm>
+#include "gruel_algorithm.h"
 
 
 namespace gruel {
@@ -13,7 +13,7 @@ namespace gruel {
 	template <typename InputIterator, typename ForwardIterator>
 	inline ForwardIterator _uninitialized_copy_aux(InputIterator first, InputIterator last,
 		ForwardIterator result, _true_type) {
-		return std::copy(first, last, result);
+		return copy(first, last, result);
 	}
 
 
@@ -44,7 +44,7 @@ namespace gruel {
 	}
 
 
-	// 偏特化版本，直接调用memmove，速度极快
+	// 特化版本，直接调用memmove，速度极快
 	template <>
 	inline char *uninitialized_copy(const char *first, const char *last,
 		char *result) {
@@ -53,7 +53,7 @@ namespace gruel {
 	}
 
 
-	// 偏特化版本，直接调用memmove，速度极快，注意这里的类型长度
+	// 特化版本，直接调用memmove，速度极快，注意这里的类型长度
 	template <>
 	inline wchar_t *uninitialized_copy(const wchar_t *first, const wchar_t *last,
 		wchar_t *result) {
@@ -66,7 +66,7 @@ namespace gruel {
 	template <typename ForwardIterator, typename T>
 	void _uninitialized_fill_aux(ForwardIterator first, ForwardIterator last,
 		const T &x, _true_type) {
-		std::fill(first, last, x);
+		fill(first, last, x);
 	}
 
 
@@ -99,7 +99,7 @@ namespace gruel {
 	template <typename ForwardIterator, typename Size, typename T>
 	inline ForwardIterator _uninitialized_fill_n_aux(ForwardIterator first, Size n,
 		const T &x, _true_type) {
-		return std::fill_n(first, n, x);
+		return fill_n(first, n, x);
 	}
 
 
