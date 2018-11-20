@@ -39,6 +39,7 @@ namespace gruel {
 
 	/* fill_n：将[first, first+n]中的所有元素改填新值，返回的迭代器指向被填入的最后一个元素的下一个位置 */
 	// 注意这里的迭代器类型为OutputIterator
+	// 注意这里的可能超出容器范围，可采用插入迭代器
 	template <typename OutputIterator, typename Size, typename T>
 	OutputIterator fill_n(OutputIterator first, Size n, const T &value) {
 		for (; n != 0; --n, ++first)
@@ -46,9 +47,14 @@ namespace gruel {
 		return first;
 	}
 
-	// 前置声明
+	
+	// 使用value_type萃取出a迭代器的指向物类型，以便用于交换
 	template <typename ForwardIterator1, typename ForwardIterator2, typename T>
-	inline void _iter_swap(ForwardIterator1 a, ForwardIterator2 b, T *);
+	inline void _iter_swap(ForwardIterator1 a, ForwardIterator2 b, T *) {
+		T tmp = *a;
+		*a = *b;
+		*b = tmp;
+	}
 
 	/* iter_swap：交换两个ForwardIterator */
 	template <typename ForwardIterator1, typename ForwardIterator2>
@@ -56,12 +62,28 @@ namespace gruel {
 		return _iter_swap(a, b, value_type(a));
 	}
 
-	// 使用value_type萃取出a迭代器的指向物类型，以便用于交换
-	template <typename ForwardIterator1, typename ForwardIterator2, typename T>
-	inline void _iter_swap(ForwardIterator1 a, ForwardIterator2 b, T *) {
-		T tmp = *a;
-		*a = *b;
-		*b = tmp;
+
+	/* max：取二者中较大者 */
+	template <typename T>
+	inline bool max(const T &a, const T &b) {
+		return a < b ? b : a;
+	}
+
+	template <typename T, typename Compare>
+	inline bool max(const T &a, const T &b, Compare comp) {
+		return comp(a, b) ? b : a;
+	}
+
+
+	/* min：取二者中较小者 */
+	template <typename T>
+	inline bool min(const T &a, const T &b) {
+		return a < b ? a : b;
+	}
+
+	template <typename T, typename Compare>
+	inline bool min(const T &a, const T &b, Compare comp) {
+		return comp(a, b) ? a : b;
 	}
 
 
@@ -112,31 +134,6 @@ namespace gruel {
 		return result != 0 ? result < 0 : len1 < len2;
 	}
 
-
-	/* max：取二者中较大者 */
-	template <typename T>
-	inline bool max(const T &a, const T &b) {
-		return a < b ? b : a;
-	}
-
-	template <typename T, typename Compare>
-	inline bool max(const T &a, const T &b, Compare comp) {
-		return comp(a, b) ? b : a;
-	}
-
-
-	/* min：取二者中较小者 */
-	template <typename T>
-	inline bool min(const T &a, const T &b) {
-		return a < b ? a : b;
-	}
-
-	template <typename T, typename Compare>
-	inline bool min(const T &a, const T &b, Compare comp) {
-		return comp(a, b) ? a : b;
-	}
-
-
 	/* mismatch：找出两个序列之间的第一个不匹配点 */
 	template <typename InputIterator1, typename InputIterator2>
 	pair<InputIterator1, InputIterator2> mismatch(InputIterator1 first1, InputIterator1 last1,
@@ -164,10 +161,10 @@ namespace gruel {
 
 	/* copy：将输入区间[first, last)内的元素复制到输出空间[result, result+(last-first))内 */
 
-	template <typename InputIterator, typename OutputIterator, typename Distance>
-	inline OutputIterator _copy_d(InputIterator first, InputIterator last, OutputIterator result, Distance *) {
+	template <typename RandomAccessIterator, typename OutputIterator, typename Distance>
+	inline OutputIterator _copy_d(RandomAccessIterator first, RandomAccessIterator last, OutputIterator result, Distance *) {
 		for (Distance n = last - first; n > 0; --n, ++first, ++result)
-			*first = *result;
+			*result = *first;
 		return result;
 	}
 
@@ -175,7 +172,7 @@ namespace gruel {
 	template <typename InputIterator, typename OutputIterator>
 	inline OutputIterator _copy(InputIterator first, InputIterator last, OutputIterator result, input_iterator_tag) {
 		for (; first != last; ++first, ++result)
-			*first = *result;
+			*result = *first;
 		return result;
 	}
 
@@ -226,7 +223,7 @@ namespace gruel {
 	// 向外提供的泛化接口
 	template <typename InputIterator, typename OutputIterator>
 	inline OutputIterator copy(InputIterator first, InputIterator last, OutputIterator result) {
-		return _copy_dispatch(first, last, result);
+		return _copy_dispatch<InputIterator, OutputIterator>()(first, last, result);
 	}
 
 	// 多载函数，针对原生指针
@@ -305,7 +302,7 @@ namespace gruel {
 	template <typename BidirectionalIterator1, typename BidirectionalIterator2>
 	inline BidirectionalIterator2 copy_backward(BidirectionalIterator1 first, BidirectionalIterator1 last,
 		BidirectionalIterator2 result) {
-		return _copy_backward_dispatch(first, last, result);
+		return _copy_backward_dispatch<BidirectionalIterator1, BidirectionalIterator2>()(first, last, result);
 	}
 
 	inline char *copy_backward(const char *first, const char *last, char *result) {

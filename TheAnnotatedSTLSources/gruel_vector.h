@@ -86,7 +86,7 @@ namespace gruel {
 		iterator erase(iterator position) {
 			// 如果删除元素不是尾端元素，则直接将删除元素的后一个元素到尾端元素复制到删除元素的位置即可，也就是前移
 			if (position + 1 != end())
-				std::copy(position + 1, finish, position);
+				copy(position + 1, finish, position);
 			// 是尾端元素就调整finish后删除即可
 			--finish;
 			destory(finish);
@@ -96,7 +96,7 @@ namespace gruel {
 		// 删除[first, last)区间内的元素
 		iterator erase(iterator first, iterator last) {
 			// 直接将[last, finish)的元素前移到first的位置即可
-			auto i = std::copy(last, finish, first);
+			auto i = copy(last, finish, first);
 			// 再删除多出来的部分
 			destory(i, finish);
 			finish = finish - (last - first);
@@ -186,7 +186,7 @@ namespace gruel {
 			construct(finish, *(finish - 1));
 			++finish;
 			auto x_copy = x;
-			std::copy_backward(position, finish - 1, finish - 2);
+			copy_backward(position, finish - 1, finish - 2);
 			*position = x_copy;
 		}
 		else {
@@ -230,9 +230,9 @@ namespace gruel {
 					uninitialized_copy(finish - n, finish, finish);
 					finish += n;
 					// 再将剩余的原区域元素后移至原finish之前
-					std::copy_backward(position, old_finish - n, old_finish);
+					copy_backward(position, old_finish - n, old_finish);
 					// 最后填充
-					std::fill(position, position + n, x_copy);
+					fill(position, position + n, x_copy);
 				}
 				// 如果插入的元素个数大于elems_after
 				else {
@@ -243,7 +243,7 @@ namespace gruel {
 					uninitialized_copy(position, old_finish, finish);
 					finish += elems_after;
 					// 填充剩余的插入元素
-					std::fill(position, old_finish, x_copy);
+					fill(position, old_finish, x_copy);
 				}
 			}
 			// 如果剩余空间不足

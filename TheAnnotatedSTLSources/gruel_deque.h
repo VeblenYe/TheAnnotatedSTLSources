@@ -128,7 +128,7 @@ namespace gruel {
 			return tmp += n;
 		}
 
-		self &operator-=(difference_type n) const { return *this += -n; }
+		self &operator-=(difference_type n) { return *this += -n; }
 
 		self operator-(difference_type n) const {
 			self tmp = *this;

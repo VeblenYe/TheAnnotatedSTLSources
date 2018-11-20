@@ -35,7 +35,7 @@ namespace gruel {
 		}
 
 		// 将没有到达尾部的区间元素拷贝至result处，实现方式很有意思
-		return copy(first2, last2, copy(first1, last1, result)) :
+		return copy(first2, last2, copy(first1, last1, result));
 	}
 
 	template <typename InputIterator1, typename InputIterator2, typename OutputIterator, typename Compare>
@@ -1349,7 +1349,7 @@ namespace gruel {
 		std::random_device r;
 		std::default_random_engine e(r());
 		for (auto i = first + 1; i != last; ++i) {
-			std::uniform_int_distribution<Distance> u(0, (i - first_ + 1);
+			std::uniform_int_distribution<Distance> u(0, (i - first + 1));
 			iter_swap(i, first + u(e));
 		}
 	}
@@ -1466,7 +1466,7 @@ namespace gruel {
 	void _unguarded_linear_insert(RandomAccessIterator last, T value) {
 		auto next = last;
 		--next;
-		// 注意区间里一定会有一个值比value小
+		// 注意区间里一定会有一个值比value小，所以不用判断边界
 		while (value < *next) {
 			*last = *next;
 			last = next;
@@ -1492,7 +1492,7 @@ namespace gruel {
 	inline void _linear_insert(RandomAccessIterator first, RandomAccessIterator last, T *) {
 		T value = *last;	// 记录尾元素
 		if (value < *first) {	// 如果尾元素比头元素还小，注意头元素为最小元素
-			copy_backward(first, last, last + 1);	// 之间将区间右移
+			copy_backward(first, last, last + 1);	// 直接将区间右移
 			*first = value;	// 设置新头元素值
 		}
 		else // 尾元素不小于头元素
@@ -1503,7 +1503,7 @@ namespace gruel {
 	inline void _linear_insert(RandomAccessIterator first, RandomAccessIterator last, T *, Compare comp) {
 		T value = *last;	// 记录尾元素
 		if (comp(value, *first)) {	
-			copy_backward(first, last, last + 1);	// 之间将区间右移
+			copy_backward(first, last, last + 1);	// 直接将区间右移
 			*first = value;	// 设置新头元素值
 		}
 		else 
@@ -1645,7 +1645,7 @@ namespace gruel {
 			}
 			--depth_limit;
 			
-			auto cut = _unguarded_partition(first, last, T(_median(*first, *(first + (last - first) / 2), *(last - 1)));
+			auto cut = _unguarded_partition(first, last, T(_median(*first, *(first + (last - first) / 2), *(last - 1))));
 			_introsort_loop(cut, last, value_type(first), depth_limit);
 			last = cut;
 		}
@@ -1660,7 +1660,7 @@ namespace gruel {
 			}
 			--depth_limit;
 
-			auto cut = _unguarded_partition(first, last, T(_median(*first, *(first + (last - first) / 2), *(last - 1), comp), comp);
+			auto cut = _unguarded_partition(first, last, T(_median(*first, *(first + (last - first) / 2), *(last - 1), comp)), comp);
 			_introsort_loop(cut, last, value_type(first), depth_limit, comp);
 			last = cut;
 		}
