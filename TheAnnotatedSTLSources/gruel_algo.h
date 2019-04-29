@@ -1571,9 +1571,9 @@ namespace gruel {
 	template <typename RandomAccessIterator, typename T>
 	void _unguarded_partition(RandomAccessIterator first, RandomAccessIterator last, const T &pivot) {
 		while (true) {
-			if (*first < pivot) ++first;
+			while (*first < pivot) ++first;
 			--last;
-			if (pivot < *last) --last;
+			while (pivot < *last) --last;
 			if (!(first < last)) return first;
 			iter_swap(first, last);
 			++first;
@@ -1583,9 +1583,9 @@ namespace gruel {
 	template <typename RandomAccessIterator, typename T, typename Compare>
 	void _unguarded_partition(RandomAccessIterator first, RandomAccessIterator last, const T &pivot, Compare comp) {
 		while (true) {
-			if (comp(*first, pivot)) ++first;
+			while (comp(*first, pivot)) ++first;
 			--last;
-			if (comp(pivot, *last)) --last;
+			while (comp(pivot, *last)) --last;
 			if (!(first < last)) return first;
 			iter_swap(first, last);
 			++first;

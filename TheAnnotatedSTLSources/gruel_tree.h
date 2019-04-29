@@ -110,8 +110,8 @@ namespace gruel {
 			else {
 				// 找出父节点
 				auto y = node->parent;
-				// 若父节点也为右子节点，则一直上溯，直到不为右子节点为止
-				while (y->right == node) {
+				// 若当前节点为右子节点，则一直上溯，直到不为右子节点为止
+				while (node == y->right) {
 					node = y;
 					y = y->parent;
 				}
@@ -882,7 +882,7 @@ namespace gruel {
 			y->left = z->left;
 			// 如果y不是z的右子节点，则z的右子节点的左子节点一定不为空，此时涉及到更深的子树，需要调整
 			if (y != z->right) {
-				x_parent = y->parent;	// 首先记录y的父节点，因为接下来x要取代y的位置
+				x_parent = y->parent;	// 首先记录y的父节点，因为接下来x要取代y的位置，也就是取代之后x的父节点
 				if (x)
 					x->parent = y->parent;
 				// y为其父节点的左子节点
@@ -902,7 +902,7 @@ namespace gruel {
 			else
 				z->parent->right = y;
 			y->parent = z->parent;
-			// 交换y和z的颜色
+			// 交换y和z的颜色，注意这里，交换了颜色后，原z处红黑性质满足，而y指向的颜色也调整为原来y的颜色
 			using std::swap;
 			swap(y->color, z->color);
 			// 此时已调整完毕，z已经无用，将y指向真正要删除的z即可
@@ -949,12 +949,14 @@ namespace gruel {
 					// 实际操作后，更新后的w颜色为黑，也就是说这一步操作后下面的情况w必定为黑
 					if (w->color == _rb_tree_red) {
 						w->color = _rb_tree_black;
+						// 将p改为红是为了维持旋转后以w为根的子树的黑深度相等
 						x_parent->color = _rb_tree_red;
 						_rb_tree_rotate_left(x_parent, root);
 						w = x_parent->right;	// 更新w
 					}
 					// 情况二：w的左右孩子都不存在或均为黑色
-					// 思路：这里有两种情况，如果p是红色，则w必定为黑，将p改为黑色，w改为红色即可，这时两条路径的黑节点数相同
+					// 思路：这里有两种情况，如果p是红色，则w必定为黑，将p改为黑色，w改为红色即可，
+					// 这时两条路径的黑节点数相同
 					// 如果p是黑色，则无论如何调整p和w都没用，这时我们将w改为红色，再上溯
 					if ((w->left == nullptr || w->left->color == _rb_tree_black)
 						&& (w->right == nullptr || w->right->color == _rb_tree_black)) {
